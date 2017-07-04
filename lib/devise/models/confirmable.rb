@@ -7,10 +7,11 @@ module Devise
     #
     # Confirmable tracks the following columns:
     #
-    # * confirmation_token   - A unique random token
-    # * confirmed_at         - A timestamp when the user clicked the confirmation link
-    # * confirmation_sent_at - A timestamp when the confirmation_token was generated (not sent)
-    # * unconfirmed_email    - An email address copied from the email attr. After confirmation
+    # * confirmation_token         - A unique random token
+    # * confirmed_at               - A timestamp when the user clicked the confirmation link
+    # * confirmation_sent_at       - A timestamp when the confirmation_token was generated (not sent)
+    # * first_confirmation_sent_at - A timestamp when the first confirmation_token was generated (not sent)
+    # * unconfirmed_email          - An email address copied from the email attr. After confirmation
     #                          this value is copied to the email attr then cleared
     #
     # == Options
@@ -66,7 +67,7 @@ module Devise
       end
 
       def self.required_fields(klass)
-        required_methods = [:confirmation_token, :confirmed_at, :confirmation_sent_at]
+        required_methods = [:confirmation_token, :confirmed_at, :confirmation_sent_at, :first_confirmation_sent_at]
         required_methods << :unconfirmed_email if klass.reconfirmable
         required_methods
       end
@@ -193,13 +194,13 @@ module Devise
         #
         # Example:
         #
-        #   # allow_unconfirmed_access_for = 1.day and confirmation_sent_at = today
+        #   # allow_unconfirmed_access_for = 1.day and first_confirmation_sent_at = today
         #   confirmation_period_valid?   # returns true
         #
-        #   # allow_unconfirmed_access_for = 5.days and confirmation_sent_at = 4.days.ago
+        #   # allow_unconfirmed_access_for = 5.days and first_confirmation_sent_at = 4.days.ago
         #   confirmation_period_valid?   # returns true
         #
-        #   # allow_unconfirmed_access_for = 5.days and confirmation_sent_at = 5.days.ago
+        #   # allow_unconfirmed_access_for = 5.days and first_confirmation_sent_at = 5.days.ago
         #   confirmation_period_valid?   # returns false
         #
         #   # allow_unconfirmed_access_for = 0.days
@@ -209,7 +210,7 @@ module Devise
         #   confirmation_period_valid?   # will always return true
         #
         def confirmation_period_valid?
-          self.class.allow_unconfirmed_access_for.nil? || (confirmation_sent_at && confirmation_sent_at.utc >= self.class.allow_unconfirmed_access_for.ago)
+          self.class.allow_unconfirmed_access_for.nil? || (first_confirmation_sent_at && first_confirmation_sent_at.utc >= self.class.allow_unconfirmed_access_for.ago)
         end
 
         # Checks if the user confirmation happens before the token becomes invalid
@@ -245,7 +246,9 @@ module Devise
             @raw_confirmation_token = self.confirmation_token
           else
             self.confirmation_token = @raw_confirmation_token = Devise.friendly_token
-            self.confirmation_sent_at = Time.now.utc
+            now = Time.now.utc
+            self.first_confirmation_sent_at = now if self.confirmation_sent_at.nil?
+            self.confirmation_sent_at = now 
           end
         end
 

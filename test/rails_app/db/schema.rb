@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 20100401102949) do
     t.string   "confirmation_token"
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
+    t.datetime "first_confirmation_sent_at"
     t.string   "unconfirmed_email"
     t.datetime "locked_at"
     t.boolean  "active",                 default: false
@@ -45,6 +46,7 @@ ActiveRecord::Schema.define(version: 20100401102949) do
     t.string   "confirmation_token"
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
+    t.datetime "first_confirmation_sent_at"
     t.integer  "failed_attempts",        default: 0
     t.string   "unlock_token"
     t.datetime "locked_at"

@@ -42,6 +42,7 @@ module Mongoid
   # field :confirmation_token,   type: String
   # field :confirmed_at,         type: Time
   # field :confirmation_sent_at, type: Time
+  # field :first_confirmation_sent_at, type: Time
   # field :unconfirmed_email,    type: String # Only if using reconfirmable
 
   ## Lockable

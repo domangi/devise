@@ -210,6 +210,37 @@ class ConfirmableTest < ActiveSupport::TestCase
     end
   end
 
+  test 'should be not active when first confirmation sent is overpast' do
+    swap Devise, allow_unconfirmed_access_for: 5.days, confirm_within: 5.days do
+      Devise.allow_unconfirmed_access_for = 5.days
+      
+      user = create_user
+      user.update_attribute(:confirmation_sent_at, 7.days.ago)
+      old_confirmation_sent_at = user.confirmation_sent_at
+      old_token = user.confirmation_token
+      refute user.active_for_authentication?
+
+      user = User.find(user.id)
+      user.resend_confirmation_instructions
+     
+      assert_equal old_confirmation_sent_at, user.confirmation_sent_at
+      assert_not_equal old_token, user.confirmation_token
+      
+      refute user.active_for_authentication?
+    end
+  end
+
+  test 'should be active when first confirmation sent is not overpast' do
+    swap Devise, allow_unconfirmed_access_for: 5.days, confirm_within: 5.days do
+      Devise.allow_unconfirmed_access_for = 5.days
+      user = create_user
+      user.confirmation_sent_at = 4.days.ago
+
+      user.resend_confirmation_instructions
+      assert user.active_for_authentication?
+    end
+  end
+
   test 'should be active when already confirmed' do
     user = create_user
     refute user.confirmed?
