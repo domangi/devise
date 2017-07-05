@@ -189,7 +189,7 @@ class ConfirmableTest < ActiveSupport::TestCase
   test 'confirm time should fallback to devise confirm in default configuration' do
     swap Devise, allow_unconfirmed_access_for: 1.day do
       user = create_user
-      user.confirmation_sent_at = 2.days.ago
+      user.first_confirmation_sent_at = 2.days.ago
       refute user.active_for_authentication?
 
       Devise.allow_unconfirmed_access_for = 3.days
@@ -202,10 +202,10 @@ class ConfirmableTest < ActiveSupport::TestCase
       Devise.allow_unconfirmed_access_for = 5.days
       user = create_user
 
-      user.confirmation_sent_at = 4.days.ago
+      user.first_confirmation_sent_at = 4.days.ago
       assert user.active_for_authentication?
 
-      user.confirmation_sent_at = 5.days.ago
+      user.first_confirmation_sent_at = 5.days.ago
       refute user.active_for_authentication?
     end
   end
@@ -215,29 +215,13 @@ class ConfirmableTest < ActiveSupport::TestCase
       Devise.allow_unconfirmed_access_for = 5.days
       
       user = create_user
-      user.update_attribute(:confirmation_sent_at, 7.days.ago)
-      old_confirmation_sent_at = user.confirmation_sent_at
-      old_token = user.confirmation_token
+      user.update_attribute(:first_confirmation_sent_at, 7.days.ago)
       refute user.active_for_authentication?
 
       user = User.find(user.id)
       user.resend_confirmation_instructions
-     
-      assert_equal old_confirmation_sent_at, user.confirmation_sent_at
-      assert_not_equal old_token, user.confirmation_token
       
       refute user.active_for_authentication?
-    end
-  end
-
-  test 'should be active when first confirmation sent is not overpast' do
-    swap Devise, allow_unconfirmed_access_for: 5.days, confirm_within: 5.days do
-      Devise.allow_unconfirmed_access_for = 5.days
-      user = create_user
-      user.confirmation_sent_at = 4.days.ago
-
-      user.resend_confirmation_instructions
-      assert user.active_for_authentication?
     end
   end
 
@@ -513,7 +497,8 @@ class ReconfirmableTest < ActiveSupport::TestCase
     assert_equal Devise::Models::Confirmable.required_fields(User), [
       :confirmation_token,
       :confirmed_at,
-      :confirmation_sent_at
+      :confirmation_sent_at,
+      :first_confirmation_sent_at
     ]
   end
 
@@ -522,6 +507,7 @@ class ReconfirmableTest < ActiveSupport::TestCase
       :confirmation_token,
       :confirmed_at,
       :confirmation_sent_at,
+      :first_confirmation_sent_at,
       :unconfirmed_email
     ]
   end

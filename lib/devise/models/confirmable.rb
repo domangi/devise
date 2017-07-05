@@ -246,9 +246,8 @@ module Devise
             @raw_confirmation_token = self.confirmation_token
           else
             self.confirmation_token = @raw_confirmation_token = Devise.friendly_token
-            now = Time.now.utc
-            self.first_confirmation_sent_at = now if self.confirmation_sent_at.nil?
-            self.confirmation_sent_at = now 
+            self.confirmation_sent_at = Time.now.utc 
+            self.first_confirmation_sent_at = self.confirmation_sent_at if self.first_confirmation_sent_at.nil?
           end
         end
 
