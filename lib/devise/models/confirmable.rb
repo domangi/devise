@@ -210,7 +210,14 @@ module Devise
         #   confirmation_period_valid?   # will always return true
         #
         def confirmation_period_valid?
+          # If first_confirmation_sent_at field was added after the user was created it's first_confirmation_sent_at could be not set.
+          # Set it equal to confirmation_sent_at the first time it is needed
+          self.set_default_for_first_confirmation_sent_at
           self.class.allow_unconfirmed_access_for.nil? || (first_confirmation_sent_at && first_confirmation_sent_at.utc >= self.class.allow_unconfirmed_access_for.ago)
+        end
+
+        def set_default_for_first_confirmation_sent_at
+          self.update(first_confirmation_sent_at: self.confirmation_sent_at) if self.first_confirmation_sent_at.nil?
         end
 
         # Checks if the user confirmation happens before the token becomes invalid
